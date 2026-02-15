@@ -1,4 +1,4 @@
-# SUMO-Skills: Comprehensive SUMO Traffic Simulation Skill Collection
+# SUMO-Skills: AI-Oriented SUMO Skill Library
 
 <div align="center">
   <br />
@@ -11,480 +11,200 @@
   </p>
 </div>
 
-SUMO-Skills is a comprehensive collection of AI skills for [Eclipse SUMO](https://www.eclipse.org/sumo/) (Simulation of Urban MObility) traffic simulation. It provides structured guidance and best practices for network creation, demand generation, simulation execution, output analysis, reinforcement learning, and MCP-based automation workflows.
+中文文档: [README_CN.md](README_CN.md)
 
-## 📚 Overview
+`SUMO-Skills` is a specialized skill set for **AI coding assistants** working on SUMO tasks.  
+It is not a new simulation engine and not a Python SDK. Instead, it packages common SUMO work into reusable skill modules (`SKILL.md + references`) so assistants can produce more reliable, executable solutions.
 
-This skill collection is organized into five specialized modules:
+## What Is SUMO-Skills
 
-| Skill | Description | Use Case |
-|-------|-------------|----------|
-| **sumo-core** | Core SUMO workflows and CLI usage | Standard simulation tasks |
-| **sumo-env** | Installation and environment setup | Setup and configuration |
-| **sumo-mcp** | MCP server integration for automation | Automated workflows |
-| **sumo-output** | Output configuration and analysis | Result processing |
-| **sumo-rl** | Reinforcement learning for traffic signals | RL training |
+You can think of it as an operating layer for traffic simulation tasks:
 
-## 🚀 Quick Start
+- Unified task decomposition: from setup and network creation to simulation and analysis
+- Unified routing rules: map different requests to the right skill (env/core/output/mcp/rl)
+- Unified command style: reduce vague answers and increase runnable commands
+- Unified collaboration interface: reusable across Code, Claude Code, Trae, and Cursor
 
-### Prerequisites
+## What Is In This Repo
 
-- **Operating System**: Windows 10+, Linux (Ubuntu 18.04+), macOS 10.15+
-- **Python**: 3.10 or higher
-- **SUMO**: 1.20.0 or higher
-- **Memory**: 4GB RAM minimum (8GB recommended)
-- **Disk Space**: 2GB free space
-
-### Installation
-
-#### Step 1: Install SUMO
-
-**Windows:**
-```powershell
-# Using winget (recommended)
-winget install --name sumo
-
-# Or download installer from https://sumo.dlr.de/
+```text
+sumo-env/      Installation, SUMO_HOME/PATH, smoke tests
+sumo-core/     Networks, demand, routing, simulation run, TraCI basics
+sumo-output/   Output config, detectors, XML/CSV conversion, stats
+sumo-mcp/      MCP workflow design and tool parameter references
+sumo-rl/       Traffic signal reinforcement learning with sumo-rl
 ```
 
-**Linux (Ubuntu/Debian):**
+## Feature Overview
+
+| Module | Problem It Solves | Typical Output |
+|---|---|---|
+| `sumo-env` | Failed setup, broken `SUMO_HOME`/`PATH`, missing tools | Runnable environment + verification |
+| `sumo-core` | End-to-end base simulation flow (net -> trips -> routes -> sumo) | `.net.xml` / `.rou.xml` / `.sumocfg` |
+| `sumo-output` | tripinfo/FCD/summary/detector analysis needs | Structured output files + analysis commands |
+| `sumo-mcp` | Multi-step automation, live TraCI control, workflow orchestration | MCP tool calls + workflow plans |
+| `sumo-rl` | RL experiment design and training for signal control | Training config + script skeletons |
+
+## 5-Minute Quick Start
+
+### 1) Verify SUMO
+
 ```bash
-sudo add-apt-repository ppa:sumo/stable
-sudo apt-get update
-sudo apt-get install sumo sumo-tools sumo-doc
+sumo --version
 ```
 
-**macOS:**
+If SUMO is not installed:
+
+- Windows: `winget install --name sumo`
+- Ubuntu/Debian: `sudo apt-get install sumo sumo-tools sumo-doc`
+- macOS: `brew install sumo`
+
+### 2) Set Environment Variables
+
+Linux/macOS:
+
 ```bash
-brew install sumo
+export SUMO_HOME="/usr/share/sumo"
+export PATH="$SUMO_HOME/bin:$PATH"
 ```
 
-#### Step 2: Configure Environment Variables
+Windows PowerShell:
 
-**Windows (PowerShell):**
 ```powershell
 $env:SUMO_HOME="C:\Program Files\Eclipse\sumo"
 $env:PATH="$env:SUMO_HOME\bin;$env:PATH"
-
-# For permanent setup
-[Environment]::SetEnvironmentVariable("SUMO_HOME", "C:\Program Files\Eclipse\sumo", "User")
 ```
 
-**Linux/macOS:**
-```bash
-export SUMO_HOME="/usr/share/sumo"  # Linux
-# export SUMO_HOME="/usr/local/share/sumo"  # macOS with Homebrew
-export PATH="$SUMO_HOME/bin:$PATH"
-
-# Add to ~/.bashrc or ~/.zshrc for persistence
-echo 'export SUMO_HOME="/usr/share/sumo"' >> ~/.bashrc
-echo 'export PATH="$SUMO_HOME/bin:$PATH"' >> ~/.bashrc
-```
-
-#### Step 3: Verify Installation
+### 3) Run Repository Smoke Test
 
 ```bash
-sumo --version
 python sumo-env/scripts/sumo_skills_smoke_test.py
 ```
 
-## 📖 Skill Modules
+## How To Collaborate In Code, Claude Code, Trae, Cursor
 
-### 1. sumo-core: Core Simulation Workflows
+Start with the same shared principles:
 
-Use this skill for standard SUMO operations including network creation, demand generation, and simulation execution.
+1. Use this repository as the workspace context
+2. Always include goal, input files, constraints, and expected output
+3. Explicitly name the skill module (`sumo-core`, `sumo-output`, etc.)
+4. Ask for executable steps and commands first, then file edits
 
-**Key Capabilities:**
-- Network generation (`netgenerate`, `netconvert`)
-- OSM import and conversion
-- Demand generation (`randomTrips.py`, `od2trips`)
-- Route computation (`duarouter`)
-- Simulation execution (`sumo`, `sumo-gui`)
-- TraCI basics
+### Code (Codex / terminal agent)
 
-**Example Workflow:**
+Recommended:
+
+- Define skill routing in project rules (for example, AGENTS instructions)
+- Name the skill directly in each request
+- Ask the agent to run commands locally and report key results
+
+Example prompt:
+
+```text
+Use sumo-core: generate a 4x4 grid network in the current directory, run a 1000-second simulation, output tripinfo.xml, and provide full commands.
+```
+
+### Claude Code
+
+Recommended:
+
+- Put skill routing in project instructions (commonly `CLAUDE.md`)
+- Provide this repo path and SUMO env variables to the assistant
+- Split complex jobs into two phases: plan first, execute second
+
+Example prompt:
+
+```text
+Execute in order sumo-env -> sumo-core -> sumo-output:
+1) check environment
+2) run a minimal simulation
+3) convert outputs to CSV
+```
+
+### Trae
+
+Recommended:
+
+- Add a skill routing table to Trae project memory/rules
+- Use a fixed collaboration template: `goal -> current files -> constraints -> deliverables`
+- Ask for command draft first, then confirm execution
+
+Example prompt:
+
+```text
+Use sumo-output: update scenario.sumocfg to include tripinfo and summary outputs, and provide post-processing stats commands.
+```
+
+### Cursor
+
+Recommended:
+
+- Add skill routing to Cursor Project Rules (for example `.cursor/rules` or `.cursorrules`)
+- Put "prefer runnable commands and concrete file edits" as top rule
+- Require changed file paths and patch-style explanations for review
+
+Example prompt:
+
+```text
+Use sumo-rl: create a minimal single-agent training script from existing net/route files and explain key hyperparameters.
+```
+
+## Universal Prompt Template (All 4 Tools)
+
+```text
+You are working as a SUMO engineering assistant.
+Preferred skills: sumo-env / sumo-core / sumo-output / sumo-mcp / sumo-rl (pick by task).
+
+Goal:
+Known inputs:
+Constraints:
+Expected outputs:
+- First provide a numbered execution plan
+- Then provide directly runnable commands
+- If files must be changed, list target file paths first
+```
+
+## Common Workflows
+
+### Workflow 1: Minimal Runnable Simulation (core)
+
 ```bash
-# 1. Generate a grid network
 netgenerate --grid --grid.number 4 --grid.length 100 -o grid.net.xml
-
-# 2. Generate random trips
-python $SUMO_HOME/tools/randomTrips.py -n grid.net.xml -e 3600 -p 1 -o trips.trips.xml
-
-# 3. Compute routes
+python $SUMO_HOME/tools/randomTrips.py -n grid.net.xml -e 1000 -p 5 -o trips.trips.xml
 duarouter -n grid.net.xml -r trips.trips.xml -o routes.rou.xml
-
-# 4. Run simulation
 sumo -c scenario.sumocfg
 ```
 
-**References:**
-- [Command Line Basics](sumo-core/references/command-line-basics.md)
-- [Network Build](sumo-core/references/network-build.md)
-- [Demand and Routing](sumo-core/references/demand-routing.md)
-- [Simulation Run](sumo-core/references/simulation-run.md)
-- [TraCI Basics](sumo-core/references/traci-basics.md)
+### Workflow 2: Outputs and Stats (output)
 
-### 2. sumo-env: Environment Setup
-
-Use this skill for SUMO installation, environment variable configuration, and dependency management.
-
-**Key Capabilities:**
-- Cross-platform installation guides
-- Environment variable setup (SUMO_HOME, PATH)
-- Python tool dependencies
-- Installation verification
-
-**Smoke Test:**
 ```bash
-python sumo-env/scripts/sumo_skills_smoke_test.py --keep-dir
-```
-
-**References:**
-- [Install SUMO](sumo-env/references/install-sumo.md)
-- [Environment Variables](sumo-env/references/env-vars.md)
-- [Python Tools](sumo-env/references/python-tools.md)
-
-### 3. sumo-mcp: MCP Automation
-
-Use this skill for automated multi-step SUMO workflows via the Model Context Protocol (MCP).
-
-**Key Capabilities:**
-- Automated network generation and conversion
-- Demand generation and routing
-- Real-time simulation control via TraCI
-- Traffic signal optimization
-- Reinforcement learning workflows
-- Pre-built automation workflows
-
-**Available Tools:**
-- `manage_network`: Network generation, OSM download, conversion
-- `manage_demand`: Random trips, OD matrix, route computation
-- `control_simulation`: Connect, step, disconnect
-- `query_simulation_state`: Vehicle list, variables, simulation stats
-- `optimize_traffic_signals`: Cycle adaptation, coordination
-- `run_workflow`: sim_gen_eval, signal_opt, rl_train
-- `manage_rl_task`: List scenarios, custom training
-
-**Example Workflow:**
-```json
-{
-  "workflow_name": "sim_gen_eval",
-  "params": {
-    "grid_number": 4,
-    "sim_seconds": 1000,
-    "output_dir": "output"
-  }
-}
-```
-
-**References:**
-- [MCP Setup](sumo-mcp/references/mcp-setup.md)
-- [MCP Tools](sumo-mcp/references/mcp-tools.md)
-
-### 4. sumo-output: Output Analysis
-
-Use this skill for configuring, generating, and analyzing SUMO simulation outputs.
-
-**Key Capabilities:**
-- Output type configuration (tripinfo, FCD, summary, etc.)
-- Detector setup and data collection
-- XML to CSV conversion
-- Statistical analysis
-
-**Common Outputs:**
-```bash
-# Command line outputs
-sumo -c scenario.sumocfg --tripinfo-output tripinfo.xml --fcd-output fcd.xml
-
-# Convert to CSV
+sumo -c scenario.sumocfg --tripinfo-output tripinfo.xml --summary-output summary.xml
 python $SUMO_HOME/tools/xml/xml2csv.py tripinfo.xml
-
-# Generate statistics
 python $SUMO_HOME/tools/output/attributeStats.py --element tripinfo --attribute timeLoss tripinfo.xml
 ```
 
-**References:**
-- [Output Types](sumo-output/references/output-types.md)
-- [Output Tools](sumo-output/references/output-tools.md)
-- [Output Parsing](sumo-output/references/output-parsing.md)
+### Workflow 3: Automation Orchestration (mcp)
 
-### 5. sumo-rl: Reinforcement Learning
+- Use `sumo-mcp` to design multi-step flows for network generation, demand generation, simulation control, and signal optimization
+- Best for full pipeline automation in one request
+- Note: the MCP server itself must be configured locally; this repository provides skill guidance and parameter references
 
-Use this skill for reinforcement learning-based traffic signal control using sumo-rl.
+## Skill Routing Cheat Sheet
 
-**Key Capabilities:**
-- Single-agent (Gymnasium) environments
-- Multi-agent (PettingZoo) environments
-- Custom observation functions
-- Custom reward functions
-- Integration with RL libraries (stable-baselines3, RLlib)
+| Task | Preferred Skill |
+|---|---|
+| Install SUMO and fix env variables | `sumo-env` |
+| Build network, demand, and run simulation | `sumo-core` |
+| Configure tripinfo/FCD/detectors and analyze results | `sumo-output` |
+| Multi-step automation and live TraCI control | `sumo-mcp` |
+| RL-based traffic signal control | `sumo-rl` |
 
-**Example Usage:**
-```python
-import gymnasium as gym
-import sumo_rl
+## Additional Resources
 
-# Single-agent environment
-env = gym.make('sumo-rl-v0',
-               net_file='path/to/net.net.xml',
-               route_file='path/to/routes.rou.xml',
-               use_gui=False,
-               num_seconds=10000)
-
-obs, info = env.reset()
-done = False
-while not done:
-    action = env.action_space.sample()
-    obs, reward, terminated, truncated, info = env.step(action)
-    done = terminated or truncated
-```
-
-**References:**
-- [RL Installation](sumo-rl/references/rl-install.md)
-- [MDP (Observations, Actions, Rewards)](sumo-rl/references/rl-mdp.md)
-- [Environment API](sumo-rl/references/rl-env-api.md)
-
-## ⚙️ Configuration
-
-### SUMO Configuration File (.sumocfg)
-
-```xml
-<configuration>
-  <input>
-    <net-file value="network.net.xml"/>
-    <route-files value="routes.rou.xml"/>
-    <additional-files value="detectors.add.xml"/>
-  </input>
-  <time>
-    <begin value="0"/>
-    <end value="3600"/>
-  </time>
-  <output>
-    <tripinfo-output value="tripinfo.xml"/>
-    <summary-output value="summary.xml"/>
-    <fcd-output value="fcd.xml"/>
-  </output>
-</configuration>
-```
-
-### Additional Files
-
-**Traffic Light Definition:**
-```xml
-<additional>
-  <tlLogic id="center" type="static" programID="0" offset="0">
-    <phase duration="31" state="GGGrrrGGGrrr"/>
-    <phase duration="5" state="yyyrrryyyrrr"/>
-    <phase duration="31" state="rrrGGGrrrGGG"/>
-    <phase duration="5" state="rrryyyrrryyy"/>
-  </tlLogic>
-</additional>
-```
-
-**Detector Definition:**
-```xml
-<additional>
-  <inductionLoop id="detector_0" lane="edge_0_0" pos="10" 
-                 period="60" file="detector_output.xml"/>
-</additional>
-```
-
-## 🛠️ Usage Examples
-
-### Example 1: Basic Grid Simulation
-
-```bash
-# Create working directory
-mkdir -p grid_simulation && cd grid_simulation
-
-# Generate 4x4 grid network
-netgenerate --grid --grid.number 4 --grid.length 100 -o grid.net.xml
-
-# Generate 200 vehicles over 1000 seconds
-python $SUMO_HOME/tools/randomTrips.py -n grid.net.xml -e 1000 -p 5 -o trips.trips.xml
-
-# Compute routes
-duarouter -n grid.net.xml -r trips.trips.xml -o routes.rou.xml --ignore-errors
-
-# Create config file
-cat > scenario.sumocfg << 'EOF'
-<configuration>
-  <input>
-    <net-file value="grid.net.xml"/>
-    <route-files value="routes.rou.xml"/>
-  </input>
-  <time>
-    <begin value="0"/>
-    <end value="1000"/>
-  </time>
-  <output>
-    <tripinfo-output value="tripinfo.xml"/>
-    <summary-output value="summary.xml"/>
-  </output>
-</configuration>
-EOF
-
-# Run simulation
-sumo -c scenario.sumocfg
-
-# Convert output to CSV
-python $SUMO_HOME/tools/xml/xml2csv.py tripinfo.xml
-```
-
-### Example 2: OSM Import
-
-```bash
-# Download OSM data (using SUMO tools)
-python $SUMO_HOME/tools/osmGet.py --bbox 116.3,39.9,116.5,40.0 --output map.osm.xml
-
-# Convert to SUMO network
-netconvert --osm map.osm.xml -o map.net.xml --tls.guess true
-
-# Generate trips and routes
-python $SUMO_HOME/tools/randomTrips.py -n map.net.xml -e 3600 -p 2 -o trips.trips.xml
-duarouter -n map.net.xml -r trips.trips.xml -o routes.rou.xml
-
-# Run with GUI
-sumo-gui -c scenario.sumocfg --start
-```
-
-### Example 3: Traffic Signal Optimization
-
-```bash
-# Generate network with traffic lights
-netgenerate --grid --grid.number 3 --grid.length 100 --tls.guess true -o grid.net.xml
-
-# Generate demand
-python $SUMO_HOME/tools/randomTrips.py -n grid.net.xml -e 3600 -p 1 -o trips.trips.xml
-duarouter -n grid.net.xml -r trips.trips.xml -o routes.rou.xml
-
-# Run signal optimization (requires tlsCycleAdaptation.py)
-python $SUMO_HOME/tools/tlsCycleAdaptation.py -n grid.net.xml -r routes.rou.xml -o tls_opt.add.xml
-
-# Run simulation with optimized signals
-sumo -c scenario.sumocfg --additional-files tls_opt.add.xml
-```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Issue 1: "sumo: command not found"
-
-**Cause:** SUMO not installed or not in PATH
-
-**Solution:**
-```bash
-# Verify SUMO_HOME is set
-echo $SUMO_HOME  # Linux/macOS
-echo %SUMO_HOME%  # Windows
-
-# Add to PATH
-export PATH="$SUMO_HOME/bin:$PATH"  # Linux/macOS
-set PATH=%SUMO_HOME%\bin;%PATH%  # Windows CMD
-```
-
-#### Issue 2: "ModuleNotFoundError: No module named 'sumolib'"
-
-**Cause:** Python tools dependencies not installed
-
-**Solution:**
-```bash
-pip install sumolib traci
-# Or install all tool dependencies
-pip install -r $SUMO_HOME/tools/requirements.txt
-```
-
-#### Issue 3: "Error: Could not locate SUMO executable"
-
-**Cause:** SUMO_HOME not set correctly
-
-**Solution:**
-```bash
-# Find SUMO installation
-which sumo  # Linux/macOS
-where sumo  # Windows
-
-# Set SUMO_HOME to parent directory of bin/
-export SUMO_HOME=/usr/share/sumo  # Adjust path as needed
-```
-
-#### Issue 4: TraCI Connection Refused
-
-**Cause:** SUMO not started with --remote-port
-
-**Solution:**
-```bash
-# Start SUMO as server
-sumo -c scenario.sumocfg --remote-port 8813
-
-# Or with GUI
-sumo-gui -c scenario.sumocfg --remote-port 8813 --start
-```
-
-#### Issue 5: Low Simulation Performance
-
-**Solutions:**
-- Use `sumo` instead of `sumo-gui` for batch runs
-- Enable libsumo: `export LIBSUMO_AS_TRACI=1`
-- Reduce output frequency
-- Use step-length control
-
-### Verification Commands
-
-```bash
-# Check SUMO version
-sumo --version
-
-# Verify environment
-python -c "import sumolib; print(sumolib.__file__)"
-python -c "import traci; print(traci.__file__)"
-
-# Run smoke test
-python sumo-env/scripts/sumo_skills_smoke_test.py
-```
-
-## 📋 Best Practices
-
-1. **Always use .sumocfg files** for reproducible simulations
-2. **Set random seeds** for reproducible results (`--seed`)
-3. **Use absolute paths** in MCP configurations
-4. **Enable appropriate outputs** for analysis needs
-5. **Test with smoke test** before complex workflows
-6. **Version control** your network and route files
-7. **Document parameters** used for generation
-
-## 🤝 Skill Routing Guide
-
-| Task | Recommended Skill |
-|------|-------------------|
-| Install SUMO | sumo-env |
-| Fix PATH/SUMO_HOME issues | sumo-env |
-| Create network manually | sumo-core |
-| Generate grid/spider network | sumo-core or sumo-mcp |
-| OSM import | sumo-core or sumo-mcp |
-| Generate random trips | sumo-core or sumo-mcp |
-| Run simple simulation | sumo-core |
-| Multi-step automated workflow | sumo-mcp |
-| Real-time TraCI control | sumo-mcp |
-| Signal optimization | sumo-mcp |
-| RL training | sumo-rl or sumo-mcp |
-| Configure outputs | sumo-output |
-| Parse/analyze results | sumo-output |
-
-## 📚 Additional Resources
-
-- [Eclipse SUMO Official Documentation](https://sumo.dlr.de/docs/)
+- [Eclipse SUMO Docs](https://sumo.dlr.de/docs/)
 - [SUMO GitHub Repository](https://github.com/eclipse-sumo/sumo)
-- [SUMO-RL Documentation](https://lucasalegre.github.io/sumo-rl/)
-- [SUMO User Mailing List](https://www.eclipse.org/sumo/contact/)
+- [sumo-rl Project](https://github.com/LucasAlegre/sumo-rl)
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
-
-## 🙏 Acknowledgments
-
-- [Eclipse SUMO](https://www.eclipse.org/sumo/) - Traffic simulation platform
-- [sumo-rl](https://github.com/LucasAlegre/sumo-rl) - Reinforcement learning framework
-- [SUMO-MCP](https://github.com/XRDS76354/SUMO-MCP-Server) - MCP server for SUMO automation
+MIT
